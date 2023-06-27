@@ -11,6 +11,7 @@ char *extractLyrics(int fd)
 	int i = 0;
 	char buf;
 	bool isLyrics = true;
+	bool isBracket = false;
 	while (1)
 	{
 		if (read(fd, &buf, 1) == 1)
@@ -21,14 +22,22 @@ char *extractLyrics(int fd)
 				isLyrics = false;
 			if (isLyrics)
 			{
+				if (buf == '\n' && isBracket)
+				{
+					isBracket = false;
+					continue;
+				}
 				text[i] = buf;
 				i++;
 				text = realloc(text, (i+1) * sizeof(char));
 			}
-			if (buf == '}')
+			if (buf == '}' || buf == ']')
+			{
 				isLyrics = true;
-			if (buf == ']')
-				isLyrics = true;
+				isBracket = true;
+			}
+			else
+				isBracket = false;
 		}
 		else
 			break;
@@ -44,14 +53,26 @@ char *trimText(char *text)
 	int end = 0;
 	for (int i=0; i<strlen(text); i++)
 	{
-		if (text[i] == ' ' || text[i] == '\n' || text[i] == '\t')
+		if
+		(
+				text[i] == ' ' ||
+				text[i] == '\n' ||
+				text[i] == '\t' ||
+				text[i] == '\r'
+		)
 			begin++;
 		else
 			break;
 	}
 	for (int i=strlen(text)-1; i>=0; i--)
 	{
-		if (text[i] == ' ' || text[i] == '\n' || text[i] == '\t')
+		if
+		(
+			text[i] == ' '||
+			text[i] == '\n' ||
+			text[i] == '\t' ||
+			text[i] == '\r'
+		)
 			end++;
 		else
 			break;

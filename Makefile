@@ -7,10 +7,10 @@ clean:
 	rm cho2txt
 install: all
 	mkdir -p "$(PREFIX)/bin"
-	cp -f snd "$(PREFIX)/bin"
+	cp -f cho2txt "$(PREFIX)/bin"
 	chmod 755 "$(PREFIX)/bin/cho2txt"
 	mkdir -p "$(MANPREFIX)/man1"
-	cp -f snd.1 "$(MANPREFIX)/man1/cho2txt.1"
+	cp -f cho2txt.1 "$(MANPREFIX)/man1/cho2txt.1"
 	chmod 644 "$(MANPREFIX)/man1/cho2txt.1"
 uninstall:
 	rm "$(PREFIX)/bin/cho2txt"
