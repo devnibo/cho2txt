@@ -1,10 +1,28 @@
-.TH "CHO2TXT 1" "June 2023" "User Commands"
+.TH "CHO2TXT 1" "July 2023" "User Commands"
 .SH NAME
 cho2txt - Extract lyrics from chordpro files
 .SH SYNOPSIS
 .B cho2txt
-[ filepath ]
+[-t]
+[-d]
+[FILE]...
 .SH DESCRIPTION
 .PP
-Provide a chordpro file via the first argument or pipe the contents of the chordpro file via stdin.
-The lyrics will be extracted and '\\n', '\\t', '\\r' and ' ' will be trimmed at the beginning and the end.
+Provide one or more chordpro files as arguments
+or pipe the content of one or more chordpro files via stdin.
+The lyrics will be extracted and '\\n', '\\t', '\\r' and ' '
+will be trimmed at the beginning and the end.
+Also lines containing no lyrics and only chordpro directives will be removed.
+The resulting text will be printed to stdout.
+.TP
+\fB\,-t\/\fR, \fB\,--title\/\fR
+Print the title of the song, e.g. 'Love Me Tender'.
+.TP
+\fB\,-d\/\fR, \fB\,--directive\/\fR
+Print the title of the song as chordpro directive, e.g. '{title: Love Me Tender}'
+.SH EXAMPLES
+.sp
+.RS 4
+cat Love_Me_Tender.cho "You_ll_Never_Walk_Alone.cho" | cho2txt
+
+cho2txt -t Love_Me_Tender.cho
