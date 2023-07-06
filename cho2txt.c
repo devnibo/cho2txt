@@ -13,6 +13,13 @@ enum print
 	PRINT_TITLE_DIRECTIVE
 };
 
+enum grid
+{
+	GRID_NO,
+	GRID_START,
+	GRID_END
+};
+
 void printHelp()
 {
 	static const char help[] = "Usage: cho2txt [-t] [-d] [FILE]...\n"
@@ -109,10 +116,52 @@ bool isTitle(const char *directive)
 	}
 }
 
+enum grid isGrid(const char *directive)
+{
+	enum grid g = GRID_NO;
+	static const char start[] = "start_of_grid";
+	static const char end[] = "end_of_grid";
+	size_t directiveLen = strlen(directive);
+	int i = 1;
+	while (i<directiveLen)
+	{
+		if (directive[i] != start[i-1])
+		{
+			g = GRID_NO;
+			break;
+		}
+		i++;
+		if (i == 14)
+		{
+			g = GRID_START;
+			break;
+		}
+	}
+	if (g != GRID_NO)
+		return g;
+	i = 1;
+	while (i<directiveLen)
+	{
+		if (directive[i] != end[i-1])
+		{
+			g = GRID_NO;
+			break;
+		}
+		i++;
+		if (i == 12)
+		{
+			g = GRID_END;
+			break;
+		}
+	}
+	return g;
+}
+
 char *extractLyrics(int fd, enum print printTitle)
 {
 	char *text = malloc(sizeof(char));
-	int i = 0;
+	int *i = malloc(sizeof(int));
+	*i = 0;
 	int d = 0;
 	char buf;
 	bool isLyric = true;
@@ -120,6 +169,7 @@ char *extractLyrics(int fd, enum print printTitle)
 	bool isDirectiveInLine = false;
 	bool isCurlyBrace = false;
 	char *directive = NULL;
+	enum grid g = GRID_NO;
 	while (1)
 	{
 		if (read(fd, &buf, 1) == 1)
@@ -139,9 +189,9 @@ char *extractLyrics(int fd, enum print printTitle)
 			{
 				if (buf == '\n' && !isLyricInLine && isDirectiveInLine)
 					goto IGNORE;
-				text[i] = buf;
-				i++;
-				text = realloc(text, (i+1) * sizeof(char));
+				text[*i] = buf;
+				(*i)++;
+				text = realloc(text, ((*i)+1) * sizeof(char));
 				isLyricInLine = true;
 				IGNORE:
 			}
@@ -156,8 +206,14 @@ char *extractLyrics(int fd, enum print printTitle)
 			}
 			if (buf == '}')
 			{
+				isLyric = true;
 				directive = realloc(directive, (d+1) * sizeof(char));
 				directive[d] = 0;
+				g = isGrid(directive);
+				if (g == GRID_START)
+					isLyric = false;
+				else if (g == GRID_END)
+					isLyric = true;
 				if (printTitle > 0 && isTitle(directive))
 				{
 					char *title;
@@ -170,20 +226,19 @@ char *extractLyrics(int fd, enum print printTitle)
 					}
 					for (int k=0; k<strlen(title); k++)
 					{
-						text[i] = title[k];
-						i++;
-						text = realloc(text, (i+1) * sizeof(char));
+						text[*i] = title[k];
+						(*i)++;
+						text = realloc(text, ((*i)+1) * sizeof(char));
 					}
 					free(title);
-					text[i] = '\n';
-					i++;
-					text = realloc(text, (i+1) * sizeof(char));
+					text[*i] = '\n';
+					(*i)++;
+					text = realloc(text, ((*i)+1) * sizeof(char));
 				}
 				d = 0;
 				free(directive);
 				directive = NULL;
 				isCurlyBrace = false;
-				isLyric = true;
 			}
 			if (buf == ']')
 				isLyric = true;
@@ -196,7 +251,8 @@ char *extractLyrics(int fd, enum print printTitle)
 		else
 			break;
 	}
-	text[i] = '\0';
+	text[*i] = '\0';
+	free(i);
 	return text;
 }
 
