@@ -5,20 +5,6 @@ enum print
 	PRINT_TITLE_DIRECTIVE
 };
 
-enum grid
-{
-	GRID_NO,
-	GRID_START,
-	GRID_END
-};
-
-enum tab
-{
-	TAB_NO,
-	TAB_START,
-	TAB_END
-};
-
 enum direc
 {
 	DIREC_TITLE,

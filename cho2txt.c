@@ -125,7 +125,6 @@ char *extractLyrics(int fd, enum print printTitle)
 	bool isDirectiveInLine = false;
 	bool isCurlyBrace = false;
 	char *directive = NULL;
-	enum grid g = GRID_NO;
 	while (1)
 	{
 		if (read(fd, &buf, 1) == 1)
