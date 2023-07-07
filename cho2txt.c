@@ -5,20 +5,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <getopt.h>
-
-enum print
-{
-	PRINT_NO,
-	PRINT_TITLE,
-	PRINT_TITLE_DIRECTIVE
-};
-
-enum grid
-{
-	GRID_NO,
-	GRID_START,
-	GRID_END
-};
+#include "cho2txt.h"
 
 void printHelp()
 {
@@ -27,6 +14,34 @@ void printHelp()
 		"  -t, --title\t\tPrint title\n"
 		"  -d, --directive\tPrint title as chordpro directive\n";
 	printf("%s", help);
+}
+
+bool isDirective(enum direc d, const char *str)
+{
+	bool isDirective = false;
+	size_t len;
+	int i = 0;
+	int k = 1;
+	char **names = (char **)dirs[d].names;
+	while (names[i] != NULL)
+	{
+		isDirective = true;
+		len = strlen(names[i]);
+		while (k <= len)
+		{
+			if (names[i][k-1] != str[k])
+			{
+				isDirective = false;
+				break;
+			}
+			k++;
+		}
+		if (isDirective)
+			return true;
+		k = 1;
+		i++;
+	}
+	return false;
 }
 
 char *trim(char *text)
@@ -99,69 +114,10 @@ char *parseTitle(const char *directive)
 	return trim(title);
 }
 
-bool isTitle(const char *directive)
-{
-	static const char title[] = "title:";
-	int t = 0;
-	for (int i=0; i<strlen(directive); i++)
-	{
-		if (i > 0 && t < 7)
-		{
-			if (directive[i] != title[t])
-				return false;
-			t++;
-			if (t == 6)
-				return true;
-		}
-	}
-}
-
-enum grid isGrid(const char *directive)
-{
-	enum grid g = GRID_NO;
-	static const char start[] = "start_of_grid";
-	static const char end[] = "end_of_grid";
-	size_t directiveLen = strlen(directive);
-	int i = 1;
-	while (i<directiveLen)
-	{
-		if (directive[i] != start[i-1])
-		{
-			g = GRID_NO;
-			break;
-		}
-		i++;
-		if (i == 14)
-		{
-			g = GRID_START;
-			break;
-		}
-	}
-	if (g != GRID_NO)
-		return g;
-	i = 1;
-	while (i<directiveLen)
-	{
-		if (directive[i] != end[i-1])
-		{
-			g = GRID_NO;
-			break;
-		}
-		i++;
-		if (i == 12)
-		{
-			g = GRID_END;
-			break;
-		}
-	}
-	return g;
-}
-
 char *extractLyrics(int fd, enum print printTitle)
 {
 	char *text = malloc(sizeof(char));
-	int *i = malloc(sizeof(int));
-	*i = 0;
+	int i = 0;
 	int d = 0;
 	char buf;
 	bool isLyric = true;
@@ -189,9 +145,9 @@ char *extractLyrics(int fd, enum print printTitle)
 			{
 				if (buf == '\n' && !isLyricInLine && isDirectiveInLine)
 					goto IGNORE;
-				text[*i] = buf;
-				(*i)++;
-				text = realloc(text, ((*i)+1) * sizeof(char));
+				text[i] = buf;
+				i++;
+				text = realloc(text, (i+1) * sizeof(char));
 				isLyricInLine = true;
 				IGNORE:
 			}
@@ -209,12 +165,17 @@ char *extractLyrics(int fd, enum print printTitle)
 				isLyric = true;
 				directive = realloc(directive, (d+1) * sizeof(char));
 				directive[d] = 0;
-				g = isGrid(directive);
-				if (g == GRID_START)
+				if (
+					isDirective(DIREC_GRID_START, directive) ||
+					isDirective(DIREC_TAB_START, directive)
+				)
 					isLyric = false;
-				else if (g == GRID_END)
+				else if (
+					isDirective(DIREC_GRID_END, directive) ||
+					isDirective(DIREC_TAB_END, directive)
+				)
 					isLyric = true;
-				if (printTitle > 0 && isTitle(directive))
+				if (printTitle > 0 && isDirective(DIREC_TITLE, directive))
 				{
 					char *title;
 					if (printTitle == PRINT_TITLE)
@@ -226,14 +187,14 @@ char *extractLyrics(int fd, enum print printTitle)
 					}
 					for (int k=0; k<strlen(title); k++)
 					{
-						text[*i] = title[k];
-						(*i)++;
-						text = realloc(text, ((*i)+1) * sizeof(char));
+						text[i] = title[k];
+						i++;
+						text = realloc(text, (i+1) * sizeof(char));
 					}
 					free(title);
-					text[*i] = '\n';
-					(*i)++;
-					text = realloc(text, ((*i)+1) * sizeof(char));
+					text[i] = '\n';
+					i++;
+					text = realloc(text, (i+1) * sizeof(char));
 				}
 				d = 0;
 				free(directive);
@@ -251,8 +212,7 @@ char *extractLyrics(int fd, enum print printTitle)
 		else
 			break;
 	}
-	text[*i] = '\0';
-	free(i);
+	text[i] = '\0';
 	return text;
 }
 
