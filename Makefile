@@ -2,7 +2,7 @@ PREFIX = /usr/local
 MANPREFIX = $(PREFIX)/share/man
 
 all:
-	$(CC) -O -Werror -o cho2txt cho2txt.c
+	$(CC) -O -Wall -o cho2txt cho2txt.c
 clean:
 	rm cho2txt
 install: all
