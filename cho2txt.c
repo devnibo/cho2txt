@@ -12,7 +12,9 @@ void printHelp()
 	static const char help[] = "Usage: cho2txt [-t] [-d] [FILE]...\n"
 		"Extract lyrics from chordpro files.\n\n"
 		"  -t, --title\t\tPrint title\n"
-		"  -d, --directive\tPrint title as chordpro directive\n";
+		"  -d, --directive\tPrint title as chordpro directive\n"
+		"  -h, --help\t\tPrints help information\n"
+		"  -v, --version\t\tPrint program version to stdout\n";
 	printf("%s", help);
 }
 
@@ -225,9 +227,10 @@ int main(int argc, char *argv[])
 		{ "title", no_argument, 0, 't' },
 		{ "directive", no_argument, 0, 'd' },
 		{ "help", no_argument, 0, 'h' },
+		{ "version", no_argument, 0, 'v' },
 		{ 0, 0, 0, 0 }
 	};
-	while ((o = getopt_long(argc, argv, "td", long_options, &optionIndex)) != -1) {
+	while ((o = getopt_long(argc, argv, "tdhv", long_options, &optionIndex)) != -1) {
 		switch(o) {
 			case 't':
 				printTitle = PRINT_TITLE;
@@ -237,6 +240,9 @@ int main(int argc, char *argv[])
 				break;
 			case 'h':
 				printHelp();
+				return 0;
+			case 'v':
+				printf("%.1f\n", VERSION);
 				return 0;
 		}
 	}

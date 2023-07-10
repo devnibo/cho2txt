@@ -1,3 +1,5 @@
+#define VERSION 1.0
+
 enum print
 {
 	PRINT_NO,
