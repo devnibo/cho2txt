@@ -122,15 +122,23 @@ char *extractLyrics(int fd, enum print printTitle)
 	int i = 0;
 	int d = 0;
 	char buf;
+	char prev_buf = '\n';
 	bool isLyric = true;
 	bool isLyricInLine = false;
 	bool isDirectiveInLine = false;
 	bool isCurlyBrace = false;
+	bool isComment = false;
 	char *directive = NULL;
 	while (1)
 	{
 		if (read(fd, &buf, 1) == 1)
     {
+			if (buf == '#' && prev_buf == '\n') {
+				isComment = true;
+			}
+			if (isComment) {
+				goto SKIP;
+			}
 			if (buf == '[')
 			{
 				isLyric = false;
@@ -204,11 +212,14 @@ char *extractLyrics(int fd, enum print printTitle)
 			}
 			if (buf == ']')
 				isLyric = true;
+			SKIP:
 			if (buf == '\n')
 			{
+				isComment = false;
 				isDirectiveInLine = false;
 				isLyricInLine = false;
 			}
+			prev_buf = buf;
 		}
 		else
 			break;

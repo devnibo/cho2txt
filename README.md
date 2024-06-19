@@ -9,3 +9,7 @@
 Then you have access to the command line program named `cho2txt`. Documentation is available via `man cho2txt`.
 
 <img src="https://github.com/devnibo/cho2txt/raw/master/cho2txt.gif" alt="example" />
+
+## See Also
+
+[https://chordpro.org](https://chordpro.org)
